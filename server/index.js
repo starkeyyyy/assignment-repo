@@ -4,24 +4,12 @@ const cors = require('cors');
 const app = express();
 require('dotenv').config();
 const jwt = require("jsonwebtoken");
-
-const server = http.createServer(app);//need to do for the socket io app, other wise we can just use the app*
-
-
-
+const gitHubRoutes = require("./router/github");
 
 PORT = process.env.PORT || 4000;
-app.use(cors({ origin: 'http://localhost:5000', credentials: true}))
-
-
+app.use(cors({ origin: 'http://localhost:5173', credentials: true}))
 app.use(express.json());
-
-
-
-
-
-
-
+app.use("/api/github" , gitHubRoutes );
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
