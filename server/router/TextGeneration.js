@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 require("dotenv").config();
+const {jsonrepair} = require("jsonrepair");
 
 const HF_TOKEN = process.env.HUGGING_FACE_TOKEN;
 
@@ -14,7 +15,7 @@ const mergeFileContents = (files) => {
 
 // 🧠 Route 1: Generate Test Case Summaries
 router.post("/generate-test-case-summaries", async (req, res) => {
-  console.log("loading");
+  console.log("loading...")
   try {
     const { files } = req.body;
     if (!files || !Array.isArray(files) || files.length === 0) {
@@ -26,11 +27,28 @@ router.post("/generate-test-case-summaries", async (req, res) => {
     const messages = [
       {
         role: "system",
-        content: "You are a QA expert. Analyze code and write high-level test cases in plain English.",
+        content:
+          "You are a QA expert. Analyze code and write high-level test cases in plain English. Respond only in raw valid JSON format without markdown or any explanation.",
       },
       {
         role: "user",
-        content: `Analyze the following code and generate a numbered list of test cases:\n\n${code}`,
+        content: `Analyze the following code and return a JSON response with the format:
+
+{
+  "analysis_and_summary": "Brief summary of the code and its purpose.",
+  "test_cases": {
+    "filename1": [
+      { "name": "Test case 1 name", "description": "Description of the test case" },
+      { "name": "Test case 2 name", "description": "Description of the test case" }
+    ],
+    "filename2": [
+      { "name": "Test case A name", "description": "Description of test case A" }
+    ]
+  },
+  "remarks_and_notes": "Additional QA-specific notes, edge cases, or potential risks."
+}
+
+Here is the code to analyze:\n\n${code}`,
       },
     ];
 
@@ -48,18 +66,30 @@ router.post("/generate-test-case-summaries", async (req, res) => {
       }
     );
 
-    const text = response.data.choices[0]?.message?.content || "";
-    const summaries = text.split("\n").filter((line) => line.trim().length > 0);
+    const rawText = response.data.choices[0]?.message?.content || "";
 
-    res.json({ summaries });
+    let parsedJSON;
+
+    try {
+      parsedJSON = JSON.parse(jsonrepair(rawText));
+      console.log("conpleted" , parsedJSON)
+    } catch (err) {
+      console.error("❌ Failed to repair/parse JSON:", err.message);
+      return res.status(500).json({
+        error: "Model returned invalid JSON",
+        raw: rawText,
+      });
+    }
+
+    return res.json(parsedJSON); // ✅ Send response once, and only here
   } catch (error) {
-    console.error(
-      "Error generating test case summaries:",
-      error.response?.data || error.message
-    );
-    res.status(500).json({ error: "Failed to generate test case summaries" });
+    console.error("Error generating test case summaries:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to generate test case summaries" });
+    }
   }
 });
+
 
 // 🧪 Route 2: Generate Test Case Code from Summary
 router.post("/generate-test-code", async (req, res) => {
@@ -74,12 +104,12 @@ router.post("/generate-test-code", async (req, res) => {
     const messages = [
   {
     role: "system",
-    content: "You are a senior test automation engineer. Generate clean, working test code in the language used in the given code. Do NOT return markdown formatting. Only return raw source code.",
+    content:
+      "You are a senior test automation engineer. Your job is to generate clean, working test code in the appropriate language. Only output JSON in the following format:\n\n{\n  \"description_and_library\": String, // A short sentence explaining the testing library used\n  \"code\": String, // The raw test code without markdown\n  \"language\": String // Language name like JavaScript, Python, etc.\n}\n\nDo NOT return markdown or any extra explanation. Only return the JSON object as described.",
   },
   {
     role: "user",
-    content: `Write a test case code for the following scenario as code. 
-Include the test case description as a comment at the top, using the correct comment syntax of the language used in the code below.
+    content: `Write a test case for the following scenario.
 
 Test Case Description:
 "${summary}"
@@ -87,7 +117,9 @@ Test Case Description:
 Relevant Code:
 ${code}
 
-Use Jest + React Testing Library if it's JavaScript/React and Selenium if it's Python and other Languages if any other Language is used. Just output raw code.`,
+Use Jest + React Testing Library if it's JavaScript/React, Selenium for Python, and appropriate libraries for other languages.
+
+Just return the JSON response as described. Do NOT include markdown or extra explanation.`,
   },
 ];
 
@@ -106,14 +138,27 @@ Use Jest + React Testing Library if it's JavaScript/React and Selenium if it's P
       }
     );
 
-    const testCode = response.data.choices[0]?.message?.content || "";
-    res.json({ testCode });
-  } catch (error) {
-    console.error(
-      "Error generating test case code:",
-      error.response?.data || error.message
-    );
-    res.status(500).json({ error: "Failed to generate test case code" });
+    const rawText = response.data.choices[0]?.message?.content || "";
+    let parsedJSON;
+
+    try {
+      parsedJSON = JSON.parse(jsonrepair(rawText));
+      console.log("conpleted" , parsedJSON)
+    } catch (err) {
+      console.error("❌ Failed to repair/parse JSON:", err.message);
+      return res.status(500).json({
+        error: "Model returned invalid JSON",
+        raw: rawText,
+      });
+    }
+
+    return res.json(parsedJSON); // ✅ Send response once, and only here
+
+  }  catch (error) {
+    console.error("Error generating test case code:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to generate test case code" });
+    }
   }
 });
 
@@ -141,10 +186,16 @@ router.post("/testing", async (req, res) => {
       }
     );
 
-    console.log("✅ Hugging Face Response:", JSON.stringify(response.data, null, 2));
+    console.log(
+      "✅ Hugging Face Response:",
+      JSON.stringify(response.data, null, 2)
+    );
     res.json(response.data);
   } catch (error) {
-    console.error("❌ Error from Hugging Face:", error.response?.data || error.message);
+    console.error(
+      "❌ Error from Hugging Face:",
+      error.response?.data || error.message
+    );
     res.status(500).json({ error: "Failed to connect to Hugging Face" });
   }
 });
