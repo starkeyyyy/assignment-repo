@@ -18,6 +18,7 @@ import {
 import CodeHighlighter from "./components/code";
 import Toast from "./components/toast"
 import { FileTree , buildFileTree } from "./components/FileTree";
+import GitHub from "./assets/github.svg"
 
 
 function App() {
@@ -249,18 +250,21 @@ function App() {
 
   return (
 <div className="min-h-screen bg-[#F5EBFA] font-sans text-sm text-[#49225B] ">
+  
+  
   <Toast ref={toastRef}/>
   {!token && (
-    <div className="bg-[#49225B] shadow p-7 absolute z-99 top-1/2 left-1/2 -translate-1/2 rounded-2xl flex flex-col items-center justify-center">
-      <h1 className="text-xl font-semibold text-white py-1 px-3 rounded-xl mb-4">
+    <div className="bg-[#49225bbe] shadow p-7 absolute z-99 top-1/2 left-1/2 -translate-1/2 rounded-2xl flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold text-white py-1 px-3 rounded-xl ">
         GitHub Test Case Generator
       </h1>
-      <Github className="h-50 w-[100%] p-4 bg-white rounded-2xl"/>
+      <img src = {GitHub} />
+      <p className="text-white"><a target="_blank" href="https://icons8.com/icon/Mhl1TfJLdkh5/github">GitHub</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a></p>
       <a
         href="http://localhost:5000/api/github/login"
-        className="bg-[#ffffff] hover:bg-[#796383] text-[#49225B]  hover:text-white px-4 py-2 mt-4 rounded-md text-sm font-semibold"
+        className="bg-[#ffffff] hover:bg-[#796383] flex gap-2 text-[#49225B]  hover:text-white px-4 py-2 mt-4 rounded-md text-lg font-semibold items-center"
       >
-        Sign in with GitHub
+       <Github/> Sign in with GitHub
       </a>
     </div>
   )}
