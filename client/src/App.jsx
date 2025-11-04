@@ -50,7 +50,7 @@ function App() {
   useEffect(() => {
     if (token) {
       axios
-        .get("http://localhost:5000/api/github/repos", {
+        .get("https://assignment-repo-7ash.onrender.com/api/github/repos", {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => setRepos(res.data))
@@ -64,7 +64,7 @@ function App() {
       const encodedPath = encodeURIComponent(file.path);
       setSelectedFileToShow(file);
       const res = await axios.get(
-        `http://localhost:5000/api/github/file-content/${selectedRepo.owner.login}/${selectedRepo.name}/main/${encodedPath}`,
+        `https://assignment-repo-7ash.onrender.com/api/github/file-content/${selectedRepo.owner.login}/${selectedRepo.name}/main/${encodedPath}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -140,7 +140,7 @@ function App() {
     setFileAreLoading(true);
     setSelectedRepo(repo);
     const res = await axios.get(
-      `http://localhost:5000/api/github/files/${repo.owner.login}/${repo.name}`,
+      `https://assignment-repo-7ash.onrender.com/api/github/files/${repo.owner.login}/${repo.name}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -154,7 +154,7 @@ function App() {
     try {
       setPullRequestCreated(true);
       const response = await axios.post(
-        "http://localhost:5000/api/github/create-pr",
+        "https://assignment-repo-7ash.onrender.com/api/github/create-pr",
         {
           githubToken: token,
           owner: selectedRepo.owner.login,
@@ -185,7 +185,7 @@ function App() {
         selectedFiles.map(async (file) => {
           const encodedPath = encodeURIComponent(file.path);
           const res = await axios.get(
-            `http://localhost:5000/api/github/file-content/${selectedRepo.owner.login}/${selectedRepo.name}/main/${encodedPath}`,
+            `https://assignment-repo-7ash.onrender.com/api/github/file-content/${selectedRepo.owner.login}/${selectedRepo.name}/main/${encodedPath}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -198,7 +198,7 @@ function App() {
       );
 
       const response = await axios.post(
-        "http://localhost:5000/api/test/generate-test-case-summaries",
+        "https://assignment-repo-7ash.onrender.com/api/test/generate-test-case-summaries",
         { files: contents }
       );
 
@@ -217,7 +217,7 @@ function App() {
         selectedFiles.map(async (file) => {
           const encodedPath = encodeURIComponent(file.path);
           const res = await axios.get(
-            `http://localhost:5000/api/github/file-content/${selectedRepo.owner.login}/${selectedRepo.name}/main/${encodedPath}`,
+            `https://assignment-repo-7ash.onrender.com/api/github/file-content/${selectedRepo.owner.login}/${selectedRepo.name}/main/${encodedPath}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -232,7 +232,7 @@ function App() {
       );
 
       const response = await axios.post(
-        "http://localhost:5000/api/test/generate-test-code",
+        "https://assignment-repo-7ash.onrender.com/api/test/generate-test-code",
         {
           summary,
           files: contents,
@@ -261,7 +261,7 @@ function App() {
       <img src = {GitHub} />
       <p className="text-white"><a target="_blank" href="https://icons8.com/icon/Mhl1TfJLdkh5/github">GitHub</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a></p>
       <a
-        href="http://localhost:5000/api/github/login"
+        href="https://assignment-repo-7ash.onrender.com/api/github/login"
         className="bg-[#ffffff] hover:bg-[#796383] flex gap-2 text-[#49225B]  hover:text-white px-4 py-2 mt-4 rounded-md text-lg font-semibold items-center"
       >
        <Github/> Sign in with GitHub
@@ -289,10 +289,10 @@ function App() {
                 >
                   <button
                     onClick={() => handleRepoClick(repo)}
-                    className="text-[#6E3482] hover:underline hover:cursor-pointer text-md font-medium flex gap-2 items-center ml-4"
+                    className="text-[#6E3482] hover:underline hover:cursor-pointer text-md font-medium flex gap-2 items-center ml-4 "
                   >
                     <GitBranch className="text-[#49225B]" />
-                    {repo.full_name}
+                    {repo.full_name.split("/").pop()}
                   </button>
                 </li>
               ))}
