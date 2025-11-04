@@ -5,7 +5,7 @@ require("dotenv").config();
 
 router.get("/login", (req, res) => {
   try {
-    const redirect_uri = "http://localhost:5000/api/github/callback";
+    const redirect_uri = "https://assignment-repo-7ash.onrender.com/api/github/callback";
     const scope = "repo"; // Use 'repo' to access private repos
     const client_id = process.env.CLIENT_ID;
 
